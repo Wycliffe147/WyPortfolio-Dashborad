@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Wy's Portfolio Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-form {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .login-form h2 {
+            margin-bottom: 2rem;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 1rem;
+            font-size: 14px;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .data-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 1rem;
+            }
+            
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2rem;
+            }
+            
+            .logout-btn {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-top: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-form">
+            <h2>🔐 Dashboard Access</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="password">Admin Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="login-btn">Access Dashboard</button>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        
+        <div class="dashboard-header">
+            <h1>📊 Portfolio Analytics</h1>
+            <p>Monitor user interactions and engagement on Wy's Portfolio</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Total Visits
+                </h3>
+                <div class="stat-value" id="totalVisits">0</div>
+                <div class="stat-description">Unique page views</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                    Login Attempts
+                </h3>
+                <div class="stat-value" id="loginAttempts">0</div>
+                <div class="stat-description">Authentication attempts</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/>
+                    </svg>
+                    Contact Requests
+                </h3>
+                <div class="stat-value" id="contactRequests">0</div>
+                <div class="stat-description">Messages received</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    Search Queries
+                </h3>
+                <div class="stat-value" id="searchQueries">0</div>
+                <div class="stat-description">Search interactions</div>
+            </div>
+        </div>
+
+        <!-- Detailed Data Sections -->
+        <div class="data-section">
+            <h2>📈 Visit Analytics</h2>
+            <button class="export-btn" onclick="exportData('visits')">Export Visits Data</button>
+            <div id="visitsData">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <p>No visit data available yet. Data will appear as users interact with your portfolio.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2>🔍 Search Analytics</h2>
+            <button class="export-btn" onclick="exportData('searches')">Export Search Data</button>
+            <div id="searchData">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <p>No search data available yet. Popular search terms will be tracked here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2>📧 Contact Messages</h2>
+            <button class="export-btn" onclick="exportData('contacts')">Export Contact Data</button>
+            <div id="contactData">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/>
+                    </svg>
+                    <p>No contact messages yet. Messages from your contact form will appear here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2>🔐 Authentication Logs</h2>
+            <button class="export-btn" onclick="exportData('auth')">Export Auth Logs</button>
+            <div id="authData">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                    </svg>
+                    <p>Authentication attempts will be logged here for security monitoring.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Environment variable simulation (replace with your actual implementation)
+        const DASHBOARD_PASSWORD = window.DASHBOARD_PASSWORD || 'your-secure-password-123';
+        
+        // Data storage keys
+        const STORAGE_KEYS = {
+            visits: 'portfolio_visits',
+            searches: 'portfolio_searches',
+            contacts: 'portfolio_contacts',
+            auth: 'portfolio_auth_logs'
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            loadDashboardData();
+        });
+
+        // Authentication functions
+        function checkAuthStatus() {
+            const isAuthenticated = sessionStorage.getItem('dashboard_authenticated');
+            if (isAuthenticated === 'true') {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadDashboardData();
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Log authentication attempt
+            logAuthAttempt(password === DASHBOARD_PASSWORD);
+            
+            if (password === DASHBOARD_PASSWORD) {
+                sessionStorage.setItem('dashboard_authenticated', 'true');
+                showDashboard();
+                errorMessage.textContent = '';
+            } else {
+                errorMessage.textContent = 'Invalid password. Access denied.';
+                document.getElementById('password').value = '';
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('dashboard_authenticated');
+            showLogin();
+        }
+
+        // Data collection functions
+        function logAuthAttempt(success) {
+            const authLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.auth) || '[]');
+            authLogs.push({
+                timestamp: new Date().toISOString(),
+                success: success,
+                ip: 'Client-side tracking',
+                userAgent: navigator.userAgent.substring(0, 100) + '...'
+            });
+            localStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(authLogs));
+        }
+
+        function logVisit() {
+            const visits = JSON.parse(localStorage.getItem(STORAGE_KEYS.visits) || '[]');
+            visits.push({
+                timestamp: new Date().toISOString(),
+                page: window.location.pathname,
+                referrer: document.referrer || 'Direct',
+                userAgent: navigator.userAgent.substring(0, 100) + '...'
+            });
+            localStorage.setItem(STORAGE_KEYS.visits, JSON.stringify(visits));
+        }
+
+        function logSearch(query) {
+            const searches = JSON.parse(localStorage.getItem(STORAGE_KEYS.searches) || '[]');
+            searches.push({
+                timestamp: new Date().toISOString(),
+                query: query,
+                page: window.location.pathname
+            });
+            localStorage.setItem(STORAGE_KEYS.searches, JSON.stringify(searches));
+        }
+
+        function logContact(data) {
+            const contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS.contacts) || '[]');
+            contacts.push({
+                timestamp: new Date().toISOString(),
+                ...data
+            });
+            localStorage.setItem(STORAGE_KEYS.contacts, JSON.stringify(contacts));
+        }
+
+        // Dashboard data loading
+        function loadDashboardData() {
+            // Load statistics
+            const visits = JSON.parse(localStorage.getItem(STORAGE_KEYS.visits) || '[]');
+            const searches = JSON.parse(localStorage.getItem(STORAGE_KEYS.searches) || '[]');
+            const contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS.contacts) || '[]');
+            const authLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.auth) || '[]');
+
+            document.getElementById('totalVisits').textContent = visits.length;
+            document.getElementById('searchQueries').textContent = searches.length;
+            document.getElementById('contactRequests').textContent = contacts.length;
+            document.getElementById('loginAttempts').textContent = authLogs.length;
+
+            // Load detailed data
+            loadVisitsTable(visits);
+            loadSearchTable(searches);
+            loadContactTable(contacts);
+            loadAuthTable(authLogs);
+        }
+
+        function loadVisitsTable(visits) {
+            const container = document.getElementById('visitsData');
+            if (visits.length === 0) return;
+
+            const table = createDataTable([
+                'Timestamp', 'Page', 'Referrer', 'User Agent'
+            ], visits.map(visit => [
+                new Date(visit.timestamp).toLocaleString(),
+                visit.page,
+                visit.referrer,
+                visit.userAgent
+            ]));
+
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function loadSearchTable(searches) {
+            const container = document.getElementById('searchData');
+            if (searches.length === 0) return;
+
+            const table = createDataTable([
+                'Timestamp', 'Query', 'Page'
+            ], searches.map(search => [
+                new Date(search.timestamp).toLocaleString(),
+                search.query,
+                search.page
+            ]));
+
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function loadContactTable(contacts) {
+            const container = document.getElementById('contactData');
+            if (contacts.length === 0) return;
+
+            const table = createDataTable([
+                'Timestamp', 'Name', 'Email', 'Subject', 'Message'
+            ], contacts.map(contact => [
+                new Date(contact.timestamp).toLocaleString(),
+                contact.name || 'N/A',
+                contact.email || 'N/A',
+                contact.subject || 'N/A',
+                (contact.message || 'N/A').substring(0, 100) + '...'
+            ]));
+
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function loadAuthTable(authLogs) {
+            const container = document.getElementById('authData');
+            if (authLogs.length === 0) return;
+
+            const table = createDataTable([
+                'Timestamp', 'Success', 'IP', 'User Agent'
+            ], authLogs.map(log => [
+                new Date(log.timestamp).toLocaleString(),
+                log.success ? '✅ Success' : '❌ Failed',
+                log.ip,
+                log.userAgent
+            ]));
+
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function createDataTable(headers, rows) {
+            const table = document.createElement('table');
+            table.className = 'data-table';
+
+            const thead = table.createTHead();
+            const headerRow = thead.insertRow();
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+
+            const tbody = table.createTBody();
+            rows.forEach(row => {
+                const tr = tbody.insertRow();
+                row.forEach(cell => {
+                    const td = tr.insertCell();
+                    td.textContent = cell;
+                });
+            });
+
+            return table;
+        }
+
+        // Export functionality
+        function exportData(type) {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            const filename = `portfolio_${type}_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Public API for external tracking
+        window.PortfolioDashboard = {
+            logVisit,
+            logSearch,
+            logContact
+        };
+
+        // Auto-log current visit
+        logVisit();
+    </script>
+</body>
+</html>
